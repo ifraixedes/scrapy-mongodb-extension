@@ -1,14 +1,12 @@
-
 from pymongo.mongo_client import MongoClient
 from pymongo.mongo_replica_set_client import MongoReplicaSetClient
 from pymongo.read_preferences import ReadPreference
-
 from scrapy import log
+from required_config_param_exception import RequiredConfigParam
 
+VERSION = '0.0.1'
 
-VERSION = '0.0.0'
-
-class MongoDBExtension():
+class MongoDBExtension(object):
     """ MongoDB extension class
         The main reason of this class is to be extended to create
         extensions (middlewares or pipelines as well) which use
@@ -27,15 +25,15 @@ class MongoDBExtension():
         2. Settings parameter name. The parameter's name use in
          scrapy settings file
         3. If it is required
-        4. If it isn't required, so 3rd element of the tupe is
-         False, then  this element exists and contains the
-         default value to use
+        4. Default value to use; when 3rd parameter is True, it
+            isn't considered, but it must exist (e.g. set to None)
+            for all the tuples have the same name of elements
     """
-    configurations_definition = (
-        ('uri', 'MONGODB_URI', True),
+    configuration_specification = (
+        ('uri', 'MONGODB_URI', True, None),
         ('fsync', 'MONGODB_FSYNC', False, False),
         ('write_concern', 'MONGODB_REPLICA_SET_W', False, 0),
-        ('database', 'MONGODB_DATABASE', True),
+        ('database', 'MONGODB_DATABASE', True, None),
         ('replica_set', 'MONGODB_REPLICA_SET', False, None)
     )
 
@@ -45,7 +43,7 @@ class MongoDBExtension():
 
     def __init__(self, settings):
         """ Constructor """
-        config = configure()
+        config = self.get_configuration(settings)
 
         if config['replica_set'] is not None:
             connection = MongoReplicaSetClient(
@@ -67,20 +65,24 @@ class MongoDBExtension():
             config['uri'],
             config['database']))
 
-    def configure(self, settings):
-        """ Configure the MongoDB connection
-            checking the required settings and populating the
-            optional setting to specified default values
+    @classmethod
+    def get_configuration(cls, settings):
+        """ Return a dictionary with the configuration parameters.
+            It checks the required settings and populating the
+            optional settings to the specified default values defined
+            by `configuration_specification` class attribute.
         """
-        for parameter in self.configurations_definition:
-            key, setting, required = parameter
-            if _is_set(self.settings[setting]):
-                config[key] = self.settings[setting]
+        config = {}
+
+        for config_param_spec in cls.configuration_specification:
+            key, setting, required, default_value = config_param_spec
+            if setting in settings:
+                config[key] = settings[setting]
             else:
                 if (required):
                     raise RequiredConfigParam(key)
                 else:
-                    config[key] = parameter[3]
+                    config[key] = default_value
 
         return config
 
@@ -92,15 +94,3 @@ class MongoDBExtension():
         @return The Item object to be processed by following middlewares
             It is required by Scrapy if it should be processed by them
         """
-
-    @classmethod
-    def _is_set(string):
-        """ Check if a string is None or ''
-
-        :returns: bool - True if the string is empty
-        """
-        if string is None:
-            return True
-        elif string == '':
-            return True
-        return False
