@@ -2,8 +2,8 @@ from copy import copy
 from unittest import TestCase, skip
 from time import strftime
 from pymongo.mongo_client import MongoClient
-from mongodb_extension import MongoDBExtension
-from required_config_param_exception import RequiredConfigParam
+from scrapy_mongodb_ext import MongoDBExtension
+from scrapy_mongodb_ext.required_config_param_exception import RequiredConfigParam
 
 TEST_COLLECTION = 'MongoDBExtension'
 
