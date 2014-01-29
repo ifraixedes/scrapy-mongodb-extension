@@ -85,12 +85,3 @@ class MongoDBExtension(object):
                     config[key] = default_value
 
         return config
-
-
-    def process_item(self, item, spider):
-        """ Process the item and add it to MongoDB
-        @param item: Item object to put into MongoDB
-        @param spider: BaseSpider object which running the queries
-        @return The Item object to be processed by following middlewares
-            It is required by Scrapy if it should be processed by them
-        """
