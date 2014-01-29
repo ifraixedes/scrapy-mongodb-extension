@@ -4,7 +4,7 @@ from pymongo.read_preferences import ReadPreference
 from scrapy import log
 from required_config_param_exception import RequiredConfigParam
 
-VERSION = '0.0.1'
+VERSION = '0.1.0'
 
 class MongoDBExtension(object):
     """ MongoDB extension class
