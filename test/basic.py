@@ -2,19 +2,14 @@ from copy import copy
 from unittest import TestCase, skip
 from time import strftime
 from pymongo.mongo_client import MongoClient
-from scrapy_mongodb_ext import MongoDBExtension
+from scrapy_mongodb_ext import MongoDBExtensionSingleCollection
 from scrapy_mongodb_ext.required_config_param_exception import RequiredConfigParam
 
 TEST_COLLECTION = 'MongoDBExtension'
 
-class BasicMongoDBExtension(MongoDBExtension):
-
+class BaseClassTestMongoDBExtension(MongoDBExtensionSingleCollection):
     def __init__(self, settings):
-        if 'MONGODB_COLLECTION' not in settings:
-            raise RequiredConfigParam('MONGODB_COLLECTION')
-
-        super(BasicMongoDBExtension, self).__init__(settings)
-        self.collection = self.db_connection[settings['MONGODB_COLLECTION']]
+        super(BaseClassTestMongoDBExtension, self).__init__(settings)
 
     def insert_doc(self, doc):
         return self.collection.insert(doc)
@@ -53,15 +48,15 @@ class TestMongoDBExtension(TestCase):
         return union
 
     def test_base_required_settings(self):
-        self.assertRaises(RequiredConfigParam, BasicMongoDBExtension, {'MONGODB_URI': 'mongodb://localhost'})
+        self.assertRaises(RequiredConfigParam, BaseClassTestMongoDBExtension, {'MONGODB_URI': 'mongodb://localhost'})
 
     def test_required_collection_setting(self):
-        self.assertRaises(RequiredConfigParam, BasicMongoDBExtension, self.MONGODB_EXT_SETTINGS)
+        self.assertRaises(RequiredConfigParam, BaseClassTestMongoDBExtension, self.MONGODB_EXT_SETTINGS)
 
     def test_mongodb_connectivity(self):
-        basic_mongodb_extension = BasicMongoDBExtension(self.union_dicts(self.MONGODB_EXT_SETTINGS, {'MONGODB_COLLECTION': TEST_COLLECTION}))
-        new_doc_oid = basic_mongodb_extension.insert_doc({'name': 'Ivan'})
-        new_doc = basic_mongodb_extension.get_doc(new_doc_oid)
+        base_mongodb_ext = BaseClassTestMongoDBExtension(self.union_dicts(self.MONGODB_EXT_SETTINGS, {'MONGODB_COLLECTION': TEST_COLLECTION}))
+        new_doc_oid = base_mongodb_ext.insert_doc({'name': 'Ivan'})
+        new_doc = base_mongodb_ext.get_doc(new_doc_oid)
         self.assertEqual(new_doc_oid, new_doc['_id'])
         self.assertEqual('Ivan', new_doc['name'])
 

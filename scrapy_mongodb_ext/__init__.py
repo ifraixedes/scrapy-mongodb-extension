@@ -85,3 +85,16 @@ class MongoDBExtension(object):
                     config[key] = default_value
 
         return config
+
+class MongoDBExtensionSingleCollection(MongoDBExtension):
+    """ Abstract class which create an instance attribute
+        `collection` which is a pymongo collection object
+        bound to the collection name provided by the
+        `MONGODB_COLLECTION` settings parameter
+    """
+    def __init__(self, settings):
+        if 'MONGODB_COLLECTION' not in settings:
+            raise RequiredConfigParam('MONGODB_COLLECTION')
+
+        super(MongoDBExtensionSingleCollection, self).__init__(settings)
+        self.collection = self.db_connection[settings['MONGODB_COLLECTION']]
